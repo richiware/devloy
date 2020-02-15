@@ -49,10 +49,12 @@ def generate_compile_command():
     if retcode == 0 and len(list_files) > 0:
         subprocess.call('jq -s add {} > compile_commands.json'.format(list_files), shell=True)
         list_project_dirs = list_files.replace('build/', '').replace('/compile_commands.json', '').split()
-        for project_dir in  list_project_dirs: logger.debug('\tproject: {}'.format(project_dir))
+        for project_dir in list_project_dirs:
+            logger.debug('\tproject: {}'.format(project_dir))
         return list_project_dirs
 
     return None
+
 
 def get_project_from_colcon():
     global logger
@@ -77,6 +79,7 @@ def get_project_from_colcon():
 
     return None
 
+
 def find_git_directory(base_dir):
     until_dir = os.getcwd()
     while base_dir != until_dir and not glob.glob(base_dir + '/.git'):
@@ -86,6 +89,7 @@ def find_git_directory(base_dir):
         return Path(base_dir + '/.git').resolve()
 
     return None
+
 
 def get_worktree_for_project(project_info):
     global logger
@@ -103,11 +107,11 @@ def get_worktree_for_project(project_info):
     if git_dir.is_file():
         git_dir_file = open(git_dir, 'r')
         git_worktree_dir = git_dir_file.readline()
-        git_worktree_dir = git_worktree_dir.replace('gitdir:','').rstrip()
+        git_worktree_dir = git_worktree_dir.replace('gitdir:', '').rstrip()
         project_branch = Path(git_worktree_dir).name
     else:
         git_proc = subprocess.Popen(
-                'cd {} && git branch'.format(project_info[1]) ,
+                'cd {} && git branch'.format(project_info[1]),
                 stdout=subprocess.PIPE, shell=True)
         git_proc.wait()
         project_branch = git_proc.stdout.readline().decode('utf-8').rstrip()
@@ -131,7 +135,7 @@ def get_worktree_for_project(project_info):
 
     rest_of_project_dir = str(project_dir.parent).replace(str(coincidence_project_dir), '')
 
-    # Returned tuple (git_dir, branch, rest of project dir)  
+    # Returned tuple (git_dir, branch, rest of project dir)
     return (git_project_dir, project_branch, rest_of_project_dir)
 
 
@@ -145,7 +149,7 @@ def apply_worktree_env(list_project_dirs):
     for project_dir in list_project_dirs:
         # Search in cache.
         if project_dir in cache:
-            project_info = cache[project_dir] 
+            project_info = cache[project_dir]
             logger.debug('Retrieved from cache: {} - {}'.format(
                 project_dir,
                 project_info
@@ -176,7 +180,6 @@ def apply_worktree_env(list_project_dirs):
             ))
             cache[project_dir] = project_info
 
-
     logger.debug('\tCalling sed argument: {}'.format(
         ' '.join(['sed'] + sed_arguments + ['compile_commands.json', '>', 'ccdb.json'])
     ))
@@ -187,6 +190,7 @@ def apply_worktree_env(list_project_dirs):
     for dir_to_copy in dirs_to_copy:
         shutil.copy2('ccdb.json', dir_to_copy + '/compile_commands.json')
     os.remove('ccdb.json')
+
 
 def main(argv=None):
     """
@@ -230,4 +234,4 @@ def main(argv=None):
     cache.close()
 
 
-    # Copiar a todos los projectos o solo al dicho por la variable de entorno
+# Copiar a todos los projectos o solo al dicho por la variable de entorno

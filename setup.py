@@ -9,9 +9,10 @@ setup(
         author='Ricardo González',
         author_email='correoricky@gmail.com',
         license='Apache License, Version 2.0',
-        packages=['ccdb'],
+        packages=['devloy', 'ccdb'],
         entry_points={
             'console_scripts': [
+                'devloy = devloy.core:main',
                 'ccdb = ccdb.core:main'
                 ]
             },
