@@ -5,6 +5,7 @@ import argparse
 import logging
 
 from . import start
+from .defaults import Defaults
 
 logger = None
 
@@ -30,7 +31,11 @@ def arg_parser(args):
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.INFO)
-    verb.func(verb, logger)
+
+    # Before execute verb, load default values from configuration.
+    defaults = Defaults()
+
+    verb.func(verb, defaults, logger)
 
 
 def main(argv=None):
