@@ -4,7 +4,7 @@
 import argparse
 import logging
 
-from . import start
+from . import start, stop
 from .defaults import Defaults
 
 logger = None
@@ -23,11 +23,11 @@ def arg_parser(args):
 
     subparsers = parser.add_subparsers(help='verbs help')
     start.add_subparser(subparsers)
+    stop.add_subparser(subparsers)
 
     verb = parser.parse_args(args)
-    options = vars(verb)
     # Set log level
-    if options['debug']:
+    if verb.debug:
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.INFO)
