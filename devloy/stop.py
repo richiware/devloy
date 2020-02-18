@@ -68,7 +68,7 @@ def stop_verb_init(args, defaults, logger):
     Starting point of the stop command
     """
     # Get projects information
-    projects_info = ProjectsInfo(logger, False, defaults.search_paths)
+    projects_info = ProjectsInfo(logger, False, [], defaults.search_paths)
 
     # Get main project info to detect if docker container is already running.
     project_name, branch = projects_info.get_main_project_info()

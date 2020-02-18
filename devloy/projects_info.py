@@ -13,10 +13,21 @@ class ProjectsInfo:
     all_deps = False
     search_paths = []
 
-    def __init__(self, logger, all_deps, search_paths):
+    def __init__(self, logger, all_deps, extra_repos, search_paths):
         self.logger = logger
         self.all_deps = all_deps
         self.search_paths = search_paths
+
+        for repo in extra_repos:
+            repo_info = repo.split(':')
+            repo_name = repo_info[0]
+            branch = None
+            if 1 < len(repo_info):
+                branch = repo_info[1]
+            repo_dir, branch = self.find_dep_dir(repo_name, branch)
+            if repo_dir:
+                self.logger.debug('    Adding extra repo {} - {}'.format(repo_name, repo_dir))
+                self.projects_dir.append((repo_name, repo_dir, branch))
 
     def read_colcon_pkg(self, colcon_pkg_path):
         """

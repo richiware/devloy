@@ -67,7 +67,7 @@ class StartCommand:
                 docker_args.append('{}:/home/{}/workspace/build'.format(
                     str(build_dir),
                     self.defaults.username))
-                ccdb_env_string += '{}:/home/{}/workspace/build'.format(
+                ccdb_env_string += '{}:/home/{}/workspace/build,'.format(
                     str(build_dir),
                     self.defaults.username)
                 if not build_dir.exists():
@@ -79,7 +79,7 @@ class StartCommand:
                 docker_args.append('{}:/home/{}/workspace/install'.format(
                     install_dir,
                     self.defaults.username))
-                ccdb_env_string += '{}:/home/{}/workspace/install'.format(
+                ccdb_env_string += '{}:/home/{}/workspace/install,'.format(
                     str(install_dir),
                     self.defaults.username)
                 if not install_dir.exists():
@@ -89,7 +89,7 @@ class StartCommand:
                 docker_args.append('-v')
                 build_dir = Path(self.defaults.docker.build_dir.replace(
                     '${CONTAINER_NAME}', self.container_name)).absolute()
-                docker_args.append('{}:/home/{}/workspace/build,'.format(
+                docker_args.append('{}:/home/{}/workspace/build'.format(
                     build_dir,
                     self.defaults.username))
                 ccdb_env_string += '{}:/home/{}/workspace/build,'.format(
@@ -101,7 +101,7 @@ class StartCommand:
                 docker_args.append('-v')
                 install_dir = Path(self.defaults.docker.install_dir.replace(
                     '${CONTAINER_NAME}', self.container_name)).absolute()
-                docker_args.append('{}:/home/{}/workspace/install,'.format(
+                docker_args.append('{}:/home/{}/workspace/install'.format(
                     install_dir,
                     self.defaults.username))
                 ccdb_env_string += '{}:/home/{}/workspace/install,'.format(
@@ -133,7 +133,7 @@ class StartCommand:
             os.execvp('docker', ['docker', 'exec', '-ti', self.container_name, '/bin/bash'])
 
 
-def add_subparser(subparser):
+def add_subparser(subparser, defaults):
     start_parser = subparser.add_parser('start', help='start help')
     start_parser.add_argument(
             '-D', '--all-deps', action='store_true',
@@ -143,7 +143,10 @@ def add_subparser(subparser):
             '-t', '--tmp', action='store_true',
             help='Instead of use the build-dir, it will use it temporary version (build-tmp-dir)')
     start_parser.add_argument(
-            '-i', '--image', nargs=1,
+            '-r', '--repo', nargs='*',
+            help='List of extra repositories to be included. They will be searched as usually. Format: (repo[:branch])')
+    start_parser.add_argument(
+            'image', nargs=1, default=defaults.docker.image,
             help='Docker image to be used.')
     start_parser.set_defaults(func=start_verb_init)
 
@@ -163,7 +166,7 @@ def start_verb_init(args, defaults, logger):
     image = deduce_image(args, defaults)
 
     # Get projects information
-    projects_info = ProjectsInfo(logger, args.all_deps, defaults.search_paths)
+    projects_info = ProjectsInfo(logger, args.all_deps, args.repo, defaults.search_paths)
 
     # Get main project info to detect if docker container is already running.
     project_name, branch = projects_info.get_main_project_info()

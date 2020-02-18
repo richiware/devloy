@@ -195,20 +195,24 @@ def apply_worktree_env(list_project_dirs):
 def apply_worktree_env_using_envvar(env_var):
     dirs_to_copy = []
     list_substitutions = env_var.split(',')
+    sed_arguments = []
 
     for substitution in list_substitutions:
         directories = substitution.split(':')
         if 2 == len(directories) and directories[0] != '' and directories[1] != '':
             origin = directories[1]
             dest = directories[0]
-            command = ' '.join(
-                    ['sed', '-e'] +
-                    ['s+{}+{}+g'.format(origin, dest)] +
-                    ['compile_commands.json', '>', 'ccdb.json'])
-            logger.debug('\tCalling sed argument: {}'.format(command))
-            subprocess.call(command, shell=True)
+            sed_arguments.append('-e')
+            sed_arguments.append('s+{}+{}+g'.format(origin, dest))
             if 'build' != origin[len(origin) - 5: len(origin)] and 'install' != origin[len(origin) - 7: len(origin)]:
                 dirs_to_copy.append(directories[1])
+
+    command = ' '.join(
+            ['sed'] +
+            sed_arguments +
+            ['compile_commands.json', '>', 'ccdb.json'])
+    logger.debug('\tCalling sed argument: {}'.format(command))
+    subprocess.call(command, shell=True)
 
     # Copy compile command database to all projects
     dirs_to_copy = set(dirs_to_copy)

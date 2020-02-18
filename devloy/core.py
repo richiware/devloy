@@ -12,6 +12,10 @@ logger = None
 
 def arg_parser(args):
     global logger
+
+    # Before execute verb, load default values from configuration.
+    defaults = Defaults()
+
     parser = argparse.ArgumentParser(
             prog='devloy',
             description='Command to deploy dockerized development environments.')
@@ -22,7 +26,7 @@ def arg_parser(args):
     )
 
     subparsers = parser.add_subparsers(help='verbs help')
-    start.add_subparser(subparsers)
+    start.add_subparser(subparsers, defaults)
     stop.add_subparser(subparsers)
 
     verb = parser.parse_args(args)
@@ -31,9 +35,6 @@ def arg_parser(args):
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.INFO)
-
-    # Before execute verb, load default values from configuration.
-    defaults = Defaults()
 
     verb.func(verb, defaults, logger)
 
