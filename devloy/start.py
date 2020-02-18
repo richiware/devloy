@@ -49,11 +49,14 @@ class StartCommand:
             docker_args.append('-v')
             docker_args.append(volume)
 
+        ccdb_env_string = ''
+
         # Project directories
         for project in projects_info:
             info = projects_info.get(project)
             docker_args.append('-v')
             docker_args.append('{}:{}'.format(info[0], info[1]))
+            ccdb_env_string += '{}:{},'.format(info[0], info[1])
 
         # Building directories
         if self.use_tmp:
@@ -64,6 +67,9 @@ class StartCommand:
                 docker_args.append('{}:/home/{}/workspace/build'.format(
                     str(build_dir),
                     self.defaults.username))
+                ccdb_env_string += '{}:/home/{}/workspace/build'.format(
+                    str(build_dir),
+                    self.defaults.username)
                 if not build_dir.exists():
                     build_dir.mkdir(parents=True)
             if self.defaults.docker.install_tmp_dir:
@@ -73,6 +79,9 @@ class StartCommand:
                 docker_args.append('{}:/home/{}/workspace/install'.format(
                     install_dir,
                     self.defaults.username))
+                ccdb_env_string += '{}:/home/{}/workspace/install'.format(
+                    str(install_dir),
+                    self.defaults.username)
                 if not install_dir.exists():
                     install_dir.mkdir(parents=True)
         else:
@@ -80,20 +89,32 @@ class StartCommand:
                 docker_args.append('-v')
                 build_dir = Path(self.defaults.docker.build_dir.replace(
                     '${CONTAINER_NAME}', self.container_name)).absolute()
-                docker_args.append('{}:/home/{}/workspace/build'.format(
+                docker_args.append('{}:/home/{}/workspace/build,'.format(
                     build_dir,
                     self.defaults.username))
+                ccdb_env_string += '{}:/home/{}/workspace/build,'.format(
+                    str(build_dir),
+                    self.defaults.username)
                 if not build_dir.exists():
                     build_dir.mkdir(parents=True)
             if self.defaults.docker.install_dir:
                 docker_args.append('-v')
                 install_dir = Path(self.defaults.docker.install_dir.replace(
                     '${CONTAINER_NAME}', self.container_name)).absolute()
-                docker_args.append('{}:/home/{}/workspace/install'.format(
+                docker_args.append('{}:/home/{}/workspace/install,'.format(
                     install_dir,
                     self.defaults.username))
+                ccdb_env_string += '{}:/home/{}/workspace/install,'.format(
+                    str(install_dir),
+                    self.defaults.username)
                 if not install_dir.exists():
                     install_dir.mkdir(parents=True)
+
+        # Environment variables for CCDB
+        docker_args.append('-e')
+        docker_args.append('CCDB_WORKTREE=')
+        docker_args.append('-e')
+        docker_args.append('CCDB_WORKTREE_APPLICATION={}'.format(ccdb_env_string))
 
         # Append docker image
         docker_args.append(self.image)

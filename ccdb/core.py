@@ -165,7 +165,7 @@ def apply_worktree_env(list_project_dirs):
 
         if project_info:
             sed_arguments.append('-e')
-            sed_arguments.append('s+{}{}+{}/{}{}+'.format(
+            sed_arguments.append('s+{}{}+{}/{}{}+g'.format(
                 project_info[0],
                 project_info[2],
                 project_info[0],
@@ -192,6 +192,31 @@ def apply_worktree_env(list_project_dirs):
     os.remove('ccdb.json')
 
 
+def apply_worktree_env_using_envvar(env_var):
+    dirs_to_copy = []
+    list_substitutions = env_var.split(',')
+
+    for substitution in list_substitutions:
+        directories = substitution.split(':')
+        if 2 == len(directories) and directories[0] != '' and directories[1] != '':
+            origin = directories[1]
+            dest = directories[0]
+            command = ' '.join(
+                    ['sed', '-e'] +
+                    ['s+{}+{}+g'.format(origin, dest)] +
+                    ['compile_commands.json', '>', 'ccdb.json'])
+            logger.debug('\tCalling sed argument: {}'.format(command))
+            subprocess.call(command, shell=True)
+            if 'build' != origin[len(origin) - 5: len(origin)] and 'install' != origin[len(origin) - 7: len(origin)]:
+                dirs_to_copy.append(directories[1])
+
+    # Copy compile command database to all projects
+    dirs_to_copy = set(dirs_to_copy)
+    for dir_to_copy in dirs_to_copy:
+        shutil.copy2('ccdb.json', dir_to_copy + '/compile_commands.json')
+    os.remove('ccdb.json')
+
+
 def main(argv=None):
     """
     Logic:
@@ -202,6 +227,7 @@ def main(argv=None):
 
     # Getting environment variables
     ccdb_worktree_env = os.environ.get('CCDB_WORKTREE')
+    ccdb_worktree_apply_env = os.environ.get('CCDB_WORKTREE_APPLICATION')
 
     # Create a custom logger
     logger = logging.getLogger(__name__)
@@ -217,9 +243,6 @@ def main(argv=None):
     # Parse arguments
     parse_arguments(args=argv)
 
-    # Load cache
-    cache = FileCache('ccdb')
-
     # Generate unique compile command database
     logger.debug('Generating compile command database')
     list_project_dirs = generate_compile_command()
@@ -227,11 +250,14 @@ def main(argv=None):
     if not list_project_dirs:
         exit(0)
 
-    if ccdb_worktree_env:
-        logger.debug('Applying worktree configuration to compile command database')
-        apply_worktree_env(list_project_dirs)
-
-    cache.close()
-
+    if ccdb_worktree_env is not None:
+        if ccdb_worktree_apply_env:
+            apply_worktree_env_using_envvar(ccdb_worktree_apply_env)
+        else:
+            # Load cache
+            cache = FileCache('ccdb')
+            logger.debug('Applying worktree configuration to compile command database')
+            apply_worktree_env(list_project_dirs)
+            cache.close()
 
 # Copiar a todos los projectos o solo al dicho por la variable de entorno
