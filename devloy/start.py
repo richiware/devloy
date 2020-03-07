@@ -143,10 +143,13 @@ def add_subparser(subparser, defaults):
             '-t', '--tmp', action='store_true',
             help='Instead of use the build-dir, it will use it temporary version (build-tmp-dir)')
     start_parser.add_argument(
-            '-r', '--repo', nargs='*',
+            '-r', '--repo', nargs='*', default=[],
             help='List of extra repositories to be included. They will be searched as usually. Format: (repo[:branch])')
     start_parser.add_argument(
-            'image', nargs=1, default=defaults.docker.image,
+            '-c', '--container', nargs=1,
+            help='Docker container name to be used.')
+    start_parser.add_argument(
+            '-i', '--image', nargs=1, default=defaults.docker.image,
             help='Docker image to be used.')
     start_parser.set_defaults(func=start_verb_init)
 
@@ -170,7 +173,11 @@ def start_verb_init(args, defaults, logger):
 
     # Get main project info to detect if docker container is already running.
     project_name, branch = projects_info.get_main_project_info()
-    command = StartCommand(docker_container_name(project_name, branch), image, logger, defaults, args.tmp)
+    if args.container:
+        container_name = args.container[0]
+    else:
+        container_name = docker_container_name(project_name, branch)
+    command = StartCommand(container_name, image, logger, defaults, args.tmp)
 
     if not command.exists_docker_container():
         command.start_docker_container(projects_info.get_projects_info())

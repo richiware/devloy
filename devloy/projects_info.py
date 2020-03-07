@@ -50,6 +50,7 @@ class ProjectsInfo:
         git_remote_proc = subprocess.Popen(
                 'cd {} && git remote get-url origin'.format(project_dir),
                 stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
                 shell=True)
         git_remote_proc.wait()
         if 0 != git_remote_proc.returncode:
@@ -255,7 +256,8 @@ class ProjectsInfo:
             project_info = self.projects_dir.pop(0)
             get_project_name, get_project_dir, suffix, deps = self.get_project_info(
                     project_info[0], project_info[1], project_info[2])
-            self.projects_dir.append((get_project_name, str(get_project_dir), suffix))
+            if get_project_name:
+                self.projects_dir.append((get_project_name, str(get_project_dir), suffix))
             return get_project_name, suffix
 
         return None, None
