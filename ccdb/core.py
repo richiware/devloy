@@ -203,7 +203,7 @@ def apply_worktree_env_using_envvar(env_var):
             origin = directories[1]
             dest = directories[0]
             sed_arguments.append('-e')
-            sed_arguments.append('s+{}+{}+g'.format(origin, dest))
+            sed_arguments.append('s+{}/+{}/+g'.format(origin, dest))
             if 'build' != origin[len(origin) - 5: len(origin)] and 'install' != origin[len(origin) - 7: len(origin)]:
                 dirs_to_copy.append(directories[1])
 
