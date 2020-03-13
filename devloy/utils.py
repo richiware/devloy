@@ -5,7 +5,7 @@ import subprocess
 
 
 def docker_container_name(project_name, branch):
-    return 'dev_{}_{}'.format(project_name, branch)
+    return 'dev_{}_{}'.format(project_name, branch).replace('/', '-')
 
 
 def exists_docker_container(container_name):

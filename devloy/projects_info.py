@@ -109,7 +109,7 @@ class ProjectsInfo:
         except Exception:
             pass
 
-        if directory_suffix != suffix:
+        if 0 < len(directory_suffix) and directory_suffix != suffix:
             self.logger.warning('Git branch ({}) differs from url suffix ({}). Using latest one.'.format(
                 suffix, directory_suffix))
             suffix = directory_suffix
