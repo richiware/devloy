@@ -149,7 +149,7 @@ def add_subparser(subparser, defaults):
             '-c', '--container', nargs=1,
             help='Docker container name to be used.')
     start_parser.add_argument(
-            '-i', '--image', nargs=1, default=defaults.docker.image,
+            '-i', '--image', nargs=1, default=[defaults.docker.image],
             help='Docker image to be used.')
     start_parser.set_defaults(func=start_verb_init)
 
