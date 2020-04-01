@@ -116,7 +116,7 @@ class ProjectsInfo:
 
         return suffix if suffix else None
 
-    def process_project_deps(self, project_name, project_dir, colcon_deps):
+    def process_project_deps(self, project_name, project_dir, project_dir_name, colcon_deps):
         """
         Get dependencies information, and store them to be processed.
         """
@@ -125,9 +125,25 @@ class ProjectsInfo:
         dependencies = colcon_deps if colcon_deps else []
         initial_pos_projects_dir = len(self.projects_dir)
 
-        # Use {project_name}.repos to get info about dependencies
+        # Find repos file to get info about dependencies.
+        # - {project_name}.repos
+        # - lowercase<{project_name}>.repos
+        # - {project_dir_name}.repos
+        found_file = False
+
         repos_path = project_dir / (project_name + '.repos')
         if repos_path.is_file():
+            found_file = True
+        if not found_file:
+            repos_path = project_dir / (project_name.lower() + '.repos')
+            if repos_path.is_file():
+                found_file = True
+        if not found_file:
+            repos_path = project_dir / (project_dir_name + '.repos')
+            if repos_path.is_file():
+                found_file = True
+
+        if found_file:
             repos_content = repos_path.read_text()
             yaml_content = yaml.safe_load(repos_content)
             repositories = yaml_content['repositories']
@@ -231,13 +247,15 @@ class ProjectsInfo:
         get_project_name, get_project_dir, suffix, colcon_project_deps = self.get_project_info(
                 project_name, project_dir, suffix)
 
+        project_dir_name = str(get_project_dir).replace('/' + suffix, '')
+
         if get_project_name:
             self.projects_info[get_project_name] = (
                     str(get_project_dir),
-                    str(get_project_dir).replace('/' + suffix, '')
+                    project_dir_name
                     )
             self.logger.debug('    Registered ({}: {}, {})'.format(get_project_name, str(get_project_dir), suffix))
-            self.process_project_deps(get_project_name, get_project_dir, colcon_project_deps)
+            self.process_project_deps(get_project_name, get_project_dir, project_dir_name, colcon_project_deps)
 
         return
 
