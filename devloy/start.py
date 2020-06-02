@@ -16,13 +16,15 @@ class StartCommand:
     logger = None
     projects_info = {}
     use_tmp = False
+    use_x11 = False
 
-    def __init__(self, container_name, image, logger, defaults, use_tmp):
+    def __init__(self, container_name, image, logger, defaults, use_tmp, use_x11):
         self.container_name = container_name
         self.image = image
         self.defaults = defaults
         self.logger = logger
         self.use_tmp = use_tmp
+        self.use_x11 = use_x11
         self.logger.debug('Starting development environment {}'.format(container_name))
 
     def exists_docker_container(self):
@@ -48,6 +50,12 @@ class StartCommand:
         for volume in self.defaults.docker.volumes:
             docker_args.append('-v')
             docker_args.append(volume)
+            docker_args.append('-e')
+            docker_args.append('DISPLAY')
+
+        if self.use_x11:
+            docker_args.append('-v')
+            docker_args.append('/tmp/.X11-unix/:/tmp/.X11-unix/')
 
         ccdb_env_string = ''
 
@@ -143,6 +151,9 @@ def add_subparser(subparser, defaults):
             '-t', '--tmp', action='store_true',
             help='Instead of use the build-dir, it will use it temporary version (build-tmp-dir)')
     start_parser.add_argument(
+            '-x', '--X11', action='store_true',
+            help='Configure docker container to be able showing GUI applications.')
+    start_parser.add_argument(
             '-r', '--repo', nargs='*', default=[],
             help='List of extra repositories to be included. They will be searched as usually. Format: (repo[:branch])')
     start_parser.add_argument(
@@ -177,7 +188,7 @@ def start_verb_init(args, defaults, logger):
         container_name = args.container[0]
     else:
         container_name = docker_container_name(project_name, branch)
-    command = StartCommand(container_name, image, logger, defaults, args.tmp)
+    command = StartCommand(container_name, image, logger, defaults, args.tmp, args.X11)
 
     if not command.exists_docker_container():
         command.start_docker_container(projects_info.get_projects_info())

@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
         name='devloy',
-        version='0.1',
+        version='0.2',
         description='Utility to deploy a developer environment using docker and colcon',
         author='Ricardo González',
         author_email='correoricky@gmail.com',
