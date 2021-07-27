@@ -1,4 +1,4 @@
-FROM ubuntu
+FROM ubuntu:focal
 MAINTAINER Ricardo González<correoricky@gmail.com>
 
 ARG USER_ID=1000
@@ -21,16 +21,13 @@ RUN apt-get update && \
         ccache \
         jq \
         python3-pip \
-        libgtest-dev \
         valgrind \
         libasio-dev \
         libtinyxml2-dev \
+        vim \
+        libssl-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
-
-RUN cd /usr/src/googletest && \
-    cmake . && \
-    cmake --build . --target install
 
 RUN if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
     groupadd -g ${GROUP_ID} ${GROUP} &&\
