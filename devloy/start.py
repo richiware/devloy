@@ -36,7 +36,8 @@ class StartCommand:
     def prepare_call(self, projects_info):
         docker_args = ['docker', 'run', '-ti', '--name', self.container_name]
         if self.defaults.docker.cap_add:
-            docker_args.append('--cap-add={}'.format(self.defaults.docker.cap_add))
+            for cap_add in self.defaults.docker.cap_add:
+                docker_args.append('--cap-add={}'.format(cap_add))
         if self.defaults.docker.net:
             docker_args.append('--net={}'.format(self.defaults.docker.net))
         if self.defaults.docker.security_opt:
