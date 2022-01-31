@@ -11,33 +11,34 @@ ENV TZ=Europe/Madrid
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN apt-get update && \
-    apt-get -y install --no-install-recommends \
-        sudo \
-        wget \
+    DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
         build-essential \
-        cmake \
-        git \
-        gdb \
         ccache \
+        cmake \
+        gdb \
+        git \
         jq \
-        python3-pip \
-        valgrind \
         libasio-dev \
-        libtinyxml2-dev \
-        vim \
         libssl-dev \
+        libtinyxml2-dev \
+        python3-pip \
+        sudo \
+        valgrind \
+        vim \
+        wget \
+        wireshark \
+    && yes yes | DEBIAN_FRONTEND=teletype dpkg-reconfigure wireshark-common \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 RUN if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
     groupadd -g ${GROUP_ID} ${GROUP} &&\
-    useradd -l -u ${USER_ID} -g ${GROUP} ${USERNAME} &&\
+    useradd -l -u ${USER_ID} -g ${GROUP} -G sudo,wireshark ${USERNAME} &&\
     install -d -m 0755 -o ${USERNAME} -g ${GROUP} /home/${USERNAME}/workspace/repos &&\
     install -d -m 0755 -o ${USERNAME} -g ${GROUP} /home/${USERNAME}/workspace/eprosima &&\
     chown --changes --silent --no-dereference --recursive \
         ${USER_ID}:${GROUP_ID} \
         /home/${USERNAME} && \
-    adduser ${USERNAME} sudo && \
     echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers \
     ;fi
 
