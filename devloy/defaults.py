@@ -8,17 +8,19 @@ import yaml
 
 
 class DockerDefaults:
-    cap_add = None
-    net = None
-    security_opt = None
-    user_env = False
-    env = []
-    volumes = []
     build_dir = None
     build_tmp_dir = None
+    cap_add = []
+    groups = []
+    env = []
+    image = None
     install_dir = None
     install_tmp_dir = None
-    image = None
+    net = None
+    privileged = None
+    security_opt = None
+    user_env = False
+    volumes = []
 
 
 class Defaults:
@@ -54,6 +56,8 @@ class Defaults:
                     self.docker.install_dir = docker_run_config['install-dir']
                 if 'install-tmp-dir' in docker_run_config:
                     self.docker.install_tmp_dir = docker_run_config['install-tmp-dir']
+                if 'privileged' in docker_run_config and True == docker_run_config['privileged']:
+                    self.docker.privileged = True
                 if 'cap-add' in docker_run_config:
                     self.docker.cap_add = docker_run_config['cap-add']
                 if 'net' in docker_run_config:
@@ -68,3 +72,5 @@ class Defaults:
                 if 'volumes' in docker_run_config:
                     self.docker.volumes = docker_run_config['volumes']
                     self.docker.volumes = [volume.replace('${USER}', self.username) for volume in self.docker.volumes]
+                if 'groups' in docker_run_config:
+                    self.docker.groups = docker_run_config['groups']

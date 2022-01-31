@@ -35,9 +35,10 @@ class StartCommand:
 
     def prepare_call(self, projects_info):
         docker_args = ['docker', 'run', '-ti', '--name', self.container_name]
-        if self.defaults.docker.cap_add:
-            for cap_add in self.defaults.docker.cap_add:
-                docker_args.append('--cap-add={}'.format(cap_add))
+        for cap_add in self.defaults.docker.cap_add:
+            docker_args.append('--cap-add={}'.format(cap_add))
+        if self.defaults.docker.privileged:
+            docker_args.append('--privileged')
         if self.defaults.docker.net:
             docker_args.append('--net={}'.format(self.defaults.docker.net))
         if self.defaults.docker.security_opt:
@@ -53,6 +54,8 @@ class StartCommand:
             docker_args.append(volume)
             docker_args.append('-e')
             docker_args.append('DISPLAY')
+        for group in self.defaults.docker.groups:
+            docker_args.append('--group-add={}'.format(group))
 
         if self.use_x11:
             docker_args.append('-v')
