@@ -15,8 +15,9 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN apt update && \
     apt install -y \
         build-essential \
-        ccache \
         cmake \
+        `: # Needed for download latest cmake version.` \
+        curl \
         gdb \
         git \
         `: # Needed for ccdb.` \
@@ -44,6 +45,19 @@ RUN pip3 install \
         vcstool \
         colcon-common-extensions \
         colcon-mixin
+
+# Compile and install last CCache
+RUN LATEST_RELEASE=$(curl -L -s -H 'Accept: application/json' https://github.com/ccache/ccache/releases/latest); \
+    LATEST_VERSION=$(echo $LATEST_RELEASE | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/'); \
+    wget -O ccache.tar.gz https://github.com/ccache/ccache/archive/refs/tags/$LATEST_VERSION.tar.gz && \
+    tar xvzf ccache.tar.gz && \
+    cd ccache-* && \
+    cmake -DZSTD_FROM_INTERNET=ON -DREDIS_STORAGE_BACKEND=OFF . && \
+    cmake --build . --target install && \
+    cd .. && \
+    rm -rf ccache*
+
+
 
 ENV TERM xterm-256color
 ENV PATH /home/${USERNAME}/.local/bin:$PATH
