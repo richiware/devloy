@@ -223,11 +223,11 @@ class ProjectsInfo:
                 self.logger.debug('    Trying to get repo name... found {}'.format(get_project_name))
             else:
                 self.logger.debug('    Trying to get repo name... not found')
-                return None, None, None, None
+                return get_project_dir.name, get_project_dir, None, None
 
         if get_project_name is None:
             self.logger.error('Cannot get project name for directory {}'.format(project_dir))
-            return None, None, None, None
+            return get_project_dir.name, get_project_dir, None, None
 
         # If processing directory '.', try to find its suffix (branch).
         if not suffix and project_dir == '.':
@@ -247,7 +247,9 @@ class ProjectsInfo:
         get_project_name, get_project_dir, suffix, colcon_project_deps = self.get_project_info(
                 project_name, project_dir, suffix)
 
-        project_dir_name = str(get_project_dir).replace('/' + suffix, '')
+        project_dir_name = str(get_project_dir)
+        if None != suffix:
+            project_dir_name = project_dir_name.replace('/' + suffix, '')
 
         if get_project_name:
             self.projects_info[get_project_name] = (
