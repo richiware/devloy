@@ -21,6 +21,8 @@ class DockerDefaults:
     security_opt = None
     user_env = False
     volumes = []
+    shm_size = None
+    extra_args = []
 
 
 class Defaults:
@@ -74,3 +76,7 @@ class Defaults:
                     self.docker.volumes = [volume.replace('${USER}', self.username) for volume in self.docker.volumes]
                 if 'groups' in docker_run_config:
                     self.docker.groups = docker_run_config['groups']
+                if 'shm-size' in docker_run_config:
+                    self.docker.shm_size = docker_run_config['shm-size']
+                if 'extra-args' in docker_run_config:
+                    self.docker.extra_args = docker_run_config['extra-args']

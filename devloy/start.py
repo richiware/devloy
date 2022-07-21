@@ -56,6 +56,10 @@ class StartCommand:
             docker_args.append('DISPLAY')
         for group in self.defaults.docker.groups:
             docker_args.append('--group-add={}'.format(group))
+        if self.defaults.docker.shm_size:
+            docker_args.append('--shm-size={}'.format(self.defaults.docker.shm_size))
+        for extra_arg in self.defaults.docker.extra_args:
+            docker_args.append('{}'.format(extra_arg))
 
         if self.use_x11:
             docker_args.append('-v')
