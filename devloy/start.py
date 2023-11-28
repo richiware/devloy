@@ -52,8 +52,6 @@ class StartCommand:
         for volume in self.defaults.docker.volumes:
             docker_args.append('-v')
             docker_args.append(volume)
-            docker_args.append('-e')
-            docker_args.append('DISPLAY')
         for group in self.defaults.docker.groups:
             docker_args.append('--group-add={}'.format(group))
         if self.defaults.docker.shm_size:
@@ -64,6 +62,8 @@ class StartCommand:
         if self.use_x11:
             docker_args.append('-v')
             docker_args.append('/tmp/.X11-unix/:/tmp/.X11-unix/')
+            docker_args.append('-e')
+            docker_args.append('DISPLAY')
 
         ccdb_env_string = ''
 

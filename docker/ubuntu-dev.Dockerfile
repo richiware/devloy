@@ -1,4 +1,4 @@
-ARG UBUNTU_DISTRO=focal
+ARG UBUNTU_DISTRO=jammy
 
 FROM ubuntu:${UBUNTU_DISTRO}
 MAINTAINER Ricardo González<correoricky@gmail.com>
@@ -16,7 +16,7 @@ RUN apt update && \
     apt install -y \
         build-essential \
         cmake \
-        `: # Needed for download latest cmake version.` \
+        `: # Needed for download latest ccache version.` \
         curl \
         gdb \
         git \
@@ -24,7 +24,7 @@ RUN apt update && \
         jq \
         python3-pip \
         sudo \
-        vim \
+        neovim \
         wget \
     && apt clean \
     && rm -rf /var/lib/apt/lists/*
