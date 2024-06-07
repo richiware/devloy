@@ -25,10 +25,8 @@ RUN apt update && \
         python3-pip \
         sudo \
         tzdata \
-        neovim \
-        wget \
-    && apt clean \
-    && rm -rf /var/lib/apt/lists/*
+        yadm \
+        wget
 
 # Set the locale
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
@@ -69,4 +67,19 @@ ENV TERM xterm-256color
 ENV PATH /home/${USERNAME}/.local/bin:$PATH
 ENV USER ${USERNAME}
 USER ${USERNAME}
+WORKDIR /home/${USERNAME}
+
+RUN yadm clone https://github.com/richiware/dotfiles.git --bootstrap \
+    && sudo apt clean \
+    && sudo rm -rf /var/lib/apt/lists/*
+
+RUN colcon mixin add default https://raw.githubusercontent.com/colcon/colcon-mixin-repository/master/index.yaml \
+    && colcon mixin update default \
+    && colcon mixin add richiware https://raw.githubusercontent.com/richiware/richiware-mixins/master/index.yaml \
+    && colcon mixin update richiware
+
+RUN   echo "yadm pull; colcon mixin update richiware" >> /home/${USERNAME}/.zlogin
+
 WORKDIR /home/${USERNAME}/workspace
+ENTRYPOINT [ "/bin/zsh" ]
+CMD [ "-l" ]
