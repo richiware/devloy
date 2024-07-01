@@ -72,6 +72,7 @@ ENV USER ${USERNAME}
 USER ${USERNAME}
 WORKDIR /home/${USERNAME}
 
+# Install colcon
 RUN python3 -m venv vdev && \
     . vdev/bin/activate && \
     pip3 install \
@@ -79,16 +80,21 @@ RUN python3 -m venv vdev && \
         colcon-common-extensions \
         colcon-mixin
 
-RUN . vdev/bin/activate \
-    && yadm clone https://github.com/richiware/dotfiles.git --bootstrap \
-    && sudo apt clean \
-    && sudo rm -rf /var/lib/apt/lists/*
-
+# Install my colcon mixins
 RUN . vdev/bin/activate \
     && colcon mixin add default https://raw.githubusercontent.com/colcon/colcon-mixin-repository/master/index.yaml \
     && colcon mixin update default \
     && colcon mixin add richiware https://raw.githubusercontent.com/richiware/richiware-mixins/master/index.yaml \
     && colcon mixin update richiware
+
+# Install my dotfiles
+RUN . vdev/bin/activate \
+    && yadm clone https://github.com/richiware/dotfiles.git --bootstrap \
+    && sudo apt clean \
+    && sudo rm -rf /var/lib/apt/lists/*
+
+# Install nvim plugins
+RUN nvim --headless '+echo "Installing' '+Lazy! sync' +qa
 
 RUN   echo "yadm pull --recurse-submodules; colcon mixin update richiware" >> /home/${USERNAME}/.zlogin
 
