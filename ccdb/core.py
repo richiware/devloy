@@ -13,7 +13,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from fcache.cache import FileCache
+# from fcache.cache import FileCache
 
 cache = None
 logger = None
@@ -257,11 +257,11 @@ def main(argv=None):
     if ccdb_worktree_env is not None:
         if ccdb_worktree_apply_env:
             apply_worktree_env_using_envvar(ccdb_worktree_apply_env)
-        else:
-            # Load cache
-            cache = FileCache('ccdb')
-            logger.debug('Applying worktree configuration to compile command database')
-            apply_worktree_env(list_project_dirs)
-            cache.close()
+        #else:
+        #    # Load cache
+        #    cache = FileCache('ccdb')
+        #    logger.debug('Applying worktree configuration to compile command database')
+        #    apply_worktree_env(list_project_dirs)
+        #    cache.close()
 
 # Copiar a todos los projectos o solo al dicho por la variable de entorno
