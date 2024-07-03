@@ -24,7 +24,7 @@ def exists_docker_container(container_name):
 def is_running_docker_container(container_name):
     running = False
     docker_ps_proc = subprocess.Popen(
-            'docker ps -q -f name={}'.format(container_name),
+            'docker ps -q -f name={}'.format(container_name), # Problem with similar names
             stdout=subprocess.PIPE,
             shell=True)
     docker_ps_proc.wait()

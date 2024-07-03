@@ -88,6 +88,9 @@ class StartCommand:
                     self.defaults.username)
                 if not build_dir.exists():
                     build_dir.mkdir(parents=True)
+                build_dir_symlink = Path('./build')
+                if not build_dir_symlink.exists():
+                    os.symlink(build_dir, build_dir_symlink)
             if self.defaults.docker.install_tmp_dir:
                 docker_args.append('-v')
                 install_dir = Path(self.defaults.docker.install_tmp_dir.replace(
@@ -100,6 +103,9 @@ class StartCommand:
                     self.defaults.username)
                 if not install_dir.exists():
                     install_dir.mkdir(parents=True)
+                install_dir_symlink = Path('./install')
+                if not install_dir_symlink.exists():
+                    os.symlink(install_dir, install_dir_symlink)
         else:
             if self.defaults.docker.build_dir:
                 docker_args.append('-v')
@@ -113,6 +119,9 @@ class StartCommand:
                     self.defaults.username)
                 if not build_dir.exists():
                     build_dir.mkdir(parents=True)
+                build_dir_symlink = Path('./build')
+                if not build_dir_symlink.exists():
+                    os.symlink(build_dir, build_dir_symlink)
             if self.defaults.docker.install_dir:
                 docker_args.append('-v')
                 install_dir = Path(self.defaults.docker.install_dir.replace(
@@ -125,6 +134,9 @@ class StartCommand:
                     self.defaults.username)
                 if not install_dir.exists():
                     install_dir.mkdir(parents=True)
+                install_dir_symlink = Path('./install')
+                if not install_dir_symlink.exists():
+                    os.symlink(install_dir, install_dir_symlink)
 
         # Environment variables for CCDB
         docker_args.append('-e')

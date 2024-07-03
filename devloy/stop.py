@@ -1,6 +1,7 @@
 # Copyright 2019 Ricardo González
 # Licensed under the Apache License, Version 2.0
 
+from pathlib import Path
 import shutil
 import subprocess
 
@@ -41,6 +42,13 @@ class StopCommand:
                     shutil.rmtree(mount['Source'])
                 elif 'install' == destination[len(destination) - 7: len(destination)]:
                     shutil.rmtree(mount['Source'])
+        # Remove symlinks
+        build_dir_symlink = Path('./build')
+        if build_dir_symlink.is_symlink():
+            build_dir_symlink.unlink()
+        install_dir_symlink = Path('./install')
+        if install_dir_symlink.is_symlink():
+            install_dir_symlink.unlink()
 
     def remove_container(self):
         if is_running_docker_container(self.container_name):
