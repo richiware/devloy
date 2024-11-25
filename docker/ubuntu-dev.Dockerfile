@@ -1,4 +1,4 @@
-ARG UBUNTU_DISTRO=jammy
+ARG UBUNTU_DISTRO=noble
 
 FROM ubuntu:${UBUNTU_DISTRO}
 MAINTAINER Ricardo González<correoricky@gmail.com>
@@ -22,7 +22,9 @@ RUN apt update && \
         `: # Needed for ccdb.` \
         jq \
         locales \
+        python3-venv \
         python3-pip \
+        python3-setuptools \
         sudo \
         tzdata \
         neovim \
@@ -47,9 +49,10 @@ RUN if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
     echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers \
     ;fi
 
-RUN pip3 install -U \
-        setuptools
-RUN pip3 install \
+# Install colcon
+RUN python3 -m venv vdev && \
+    . vdev/bin/activate && \
+    pip3 install \
         vcstool \
         colcon-common-extensions \
         colcon-mixin
