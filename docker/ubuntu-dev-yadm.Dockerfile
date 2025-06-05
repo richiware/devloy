@@ -11,6 +11,8 @@ ARG GROUP=ricardo
 # Avoid interactuation with installation of some package that needs the locale.
 ENV TZ=Europe/Madrid
 
+RUN touch /.dockerenv
+
 RUN apt update && \
     DEBIAN_FRONTEND=noninteractive apt install -y \
         build-essential \
@@ -72,10 +74,11 @@ ENV USER ${USERNAME}
 USER ${USERNAME}
 WORKDIR /home/${USERNAME}
 
-# Install colcon
+# Install colcon and other PIP packages
 RUN python3 -m venv vdev && \
     . vdev/bin/activate && \
     pip3 install \
+        git+https://github.com/richiware/devloy \
         vcstool \
         colcon-common-extensions \
         colcon-mixin
