@@ -17,6 +17,7 @@ RUN apt update && \
     DEBIAN_FRONTEND=noninteractive apt install -y \
         build-essential \
         cmake \
+        ninja-build \
         `: # Needed for download latest ccache version.` \
         curl \
         gdb \
