@@ -13,8 +13,13 @@ ENV TZ=Europe/Madrid
 
 RUN touch /.dockerenv
 
+# Install PPA for neovim
 RUN apt update && \
-    DEBIAN_FRONTEND=noninteractive apt install -y \
+    apt install -y software-properties-common && \
+    add-apt-repository ppa:neovim-ppa/unstable && \
+    apt update
+
+RUN DEBIAN_FRONTEND=noninteractive apt install -y \
         build-essential \
         cmake \
         ninja-build \
