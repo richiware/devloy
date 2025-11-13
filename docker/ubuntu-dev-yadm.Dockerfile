@@ -1,7 +1,7 @@
 ARG UBUNTU_DISTRO=noble
 
 FROM ubuntu:${UBUNTU_DISTRO}
-MAINTAINER Ricardo González<correoricky@gmail.com>
+LABEL org.opencontainers.image.authors="Ricardo González<correoricky@gmail.com>"
 
 ARG USER_ID=1000
 ARG GROUP_ID=1000
@@ -20,30 +20,40 @@ RUN apt update && \
     apt update
 
 RUN DEBIAN_FRONTEND=noninteractive apt install -y \
-        build-essential \
-        cmake \
-        ninja-build \
-        `: # Needed for download latest ccache version.` \
-        curl \
-        gdb \
-        git \
-        `: # Needed for ccdb.` \
-        jq \
-        locales \
-        python3-venv \
-        python3-pip \
-        python3-setuptools \
-        sudo \
-        tzdata \
-        yadm \
-        wget
+        #################################
+        # c++ tools                     #
+        #################################
+        build-essential                 \
+        cmake                           \
+        ninja-build                     \
+        gdb                             \
+        locales                         \
+        sudo                            \
+        tzdata                          \
+        wget                            \
+        #################################
+        # tools required                #
+        #################################
+        curl                            \
+        git                             \
+        #################################
+        # tools required by devloy      #
+        #################################
+        jq                              \
+        yadm                            \
+        #################################
+        # python3 dependencies          #
+        #################################
+        python3-pip                     \
+        python3-setuptools              \
+        python3-venv
 
 # Set the locale
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
     locale-gen
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV LC_ALL=en_US.UTF-8
 
 RUN if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
     if [ ${GROUP_ID} -eq 1000 ]; then \
@@ -74,9 +84,9 @@ RUN LATEST_RELEASE=$(curl -L -s -H 'Accept: application/json' https://github.com
     cd .. && \
     rm -rf ccache*
 
-ENV TERM xterm-256color
-ENV PATH /home/${USERNAME}/.local/bin:$PATH
-ENV USER ${USERNAME}
+ENV TERM=xterm-256color
+ENV PATH=/home/${USERNAME}/.local/bin:$PATH
+ENV USER=${USERNAME}
 USER ${USERNAME}
 WORKDIR /home/${USERNAME}
 
