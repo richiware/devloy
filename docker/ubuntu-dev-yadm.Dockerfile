@@ -87,6 +87,9 @@ RUN LATEST_RELEASE=$(curl -L -s -H 'Accept: application/json' https://github.com
 ENV TERM=xterm-256color
 ENV PATH=/home/${USERNAME}/.local/bin:$PATH
 ENV USER=${USERNAME}
+ENV GROUP=${GROUP}
+ENV USER_ID=${USER_ID}
+ENV GROUP_ID=${GROUP_ID}
 USER ${USERNAME}
 WORKDIR /home/${USERNAME}
 
