@@ -10,6 +10,7 @@ ARG GROUP=ricardo
 
 # Avoid interactuation with installation of some package that needs the locale.
 ENV TZ=Europe/Madrid
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN touch /.dockerenv
 
@@ -19,7 +20,7 @@ RUN apt update && \
     add-apt-repository ppa:neovim-ppa/unstable && \
     apt update
 
-RUN DEBIAN_FRONTEND=noninteractive apt install -y \
+RUN apt install -y \
         #################################
         # c++ tools                     #
         #################################
