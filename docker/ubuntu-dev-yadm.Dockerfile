@@ -29,6 +29,7 @@ RUN apt install -y \
         ninja-build                     \
         gdb                             \
         locales                         \
+        lsb-release                     \
         sudo                            \
         tzdata                          \
         wget                            \
@@ -56,17 +57,18 @@ ENV LANG=en_US.UTF-8
 ENV LANGUAGE=en_US:en
 ENV LC_ALL=en_US.UTF-8
 
-RUN if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
-    if [ ${GROUP_ID} -eq 1000 ]; then \
-        groupmod -n ${GROUP} ubuntu; \
-    else \
-        groupadd -g ${GROUP_ID} ${GROUP}; \
-    fi; \
-    if [ ${USER_ID} -eq 1000 ]; then \
-        usermod -l ${USERNAME} -g ${GROUP} -G sudo -d /home/${USERNAME} ubuntu; \
-    else \
-        useradd -l -u ${USER_ID} -g ${GROUP} -G sudo ${USERNAME}; \
-    fi; \
+RUN UBUNTUVERSION=$(lsb_release -sr | cut -d. -f1); \
+    if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
+        if [ ${GROUP_ID} -eq 1000 ] && [ $UBUNTUVERSION -ge 24 ]; then \
+            groupmod -n ${GROUP} ubuntu; \
+        else \
+            groupadd -g ${GROUP_ID} ${GROUP}; \
+        fi; \
+        if [ ${USER_ID} -eq 1000 ] && [ $UBUNTUVERSION -ge 24 ]; then \
+            usermod -l ${USERNAME} -g ${GROUP} -G sudo -d /home/${USERNAME} ubuntu; \
+        else \
+            useradd -l -u ${USER_ID} -g ${GROUP} -G sudo ${USERNAME}; \
+        fi; \
         install -d -m 0755 -o ${USERNAME} -g ${GROUP} /home/${USERNAME}/workspace/repos && \
         chown --changes --silent --no-dereference --recursive \
             ${USER_ID}:${GROUP_ID} \
