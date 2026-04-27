@@ -1,6 +1,6 @@
-ARG UBUNTU_DISTRO=noble
+ARG CENTOS_DISTRO=9
 
-FROM ubuntu:${UBUNTU_DISTRO}
+FROM spack/centos-stream${CENTOS_DISTRO}:latest
 LABEL org.opencontainers.image.authors="Ricardo González<correoricky@gmail.com>"
 
 ARG USER_ID=1000
@@ -10,81 +10,50 @@ ARG GROUP=ricardo
 
 # Avoid interactuation with installation of some package that needs the locale.
 ENV TZ=Europe/Madrid
-ENV DEBIAN_FRONTEND=noninteractive
 
 RUN touch /.dockerenv
 
-# Install PPA for neovim
-RUN apt update && \
-    apt install -y software-properties-common && \
-    add-apt-repository ppa:neovim-ppa/unstable && \
-    apt update
-
-RUN apt install -y \
+RUN dnf install -y \
         #################################
         # c++ tools                     #
         #################################
-        build-essential                 \
         cmake                           \
         ninja-build                     \
         gdb                             \
-        locales                         \
         lsb-release                     \
         sudo                            \
-        tzdata                          \
         wget                            \
-        #################################
-        # tools required                #
-        #################################
-        curl                            \
-        git                             \
         #################################
         # tools required by devloy      #
         #################################
         jq                              \
-        yadm                            \
         #################################
         # python3 dependencies          #
         #################################
         python3-pip                     \
-        python3-setuptools              \
-        python3-venv
+        python3-setuptools
 
-# Set the locale
-RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
-    locale-gen
+# Install yadm
+RUN curl -fLo /usr/local/bin/yadm https://github.com/yadm-dev/yadm/raw/master/yadm && chmod a+x /usr/local/bin/yadm
+
 ENV LANG=en_US.UTF-8
 ENV LANGUAGE=en_US:en
 ENV LC_ALL=en_US.UTF-8
 
-RUN UBUNTUVERSION=$(lsb_release -sr | cut -d. -f1); \
-    if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
-        if [ ${GROUP_ID} -eq 1000 ] && [ $UBUNTUVERSION -ge 24 ]; then \
-            groupmod -n ${GROUP} ubuntu; \
-        else \
-            groupadd -g ${GROUP_ID} ${GROUP}; \
-        fi; \
-        if [ ${USER_ID} -eq 1000 ] && [ $UBUNTUVERSION -ge 24 ]; then \
-            usermod -l ${USERNAME} -g ${GROUP} -G sudo -d /home/${USERNAME} ubuntu; \
-        else \
-            useradd -l -u ${USER_ID} -g ${GROUP} -G sudo ${USERNAME}; \
-        fi; \
+RUN if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
+        groupadd -g ${GROUP_ID} ${GROUP}; \
+        useradd -l -u ${USER_ID} -g ${GROUP} -G wheel ${USERNAME}; \
         install -d -m 0755 -o ${USERNAME} -g ${GROUP} /home/${USERNAME}/workspace/repos && \
         chown --changes --silent --no-dereference --recursive \
             ${USER_ID}:${GROUP_ID} \
             /home/${USERNAME} && \
-        echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers \
+        echo '%wheel ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers \
     ;fi
 
 # Compile and install last CCache
-RUN UBUNTUVERSION=$(lsb_release -sr | cut -d. -f1); \
-    if [ $UBUNTUVERSION -ge 22 ]; then \
-        LATEST_RELEASE=$(curl -L -s -H 'Accept: application/json' https://github.com/ccache/ccache/releases/latest); \
-        LATEST_VERSION=$(echo $LATEST_RELEASE | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/'); \
-        wget -O ccache.tar.gz https://github.com/ccache/ccache/archive/refs/tags/$LATEST_VERSION.tar.gz; \
-    else \
-        wget -O ccache.tar.gz https://github.com/ccache/ccache/archive/refs/tags/v4.11.3.tar.gz; \
-    fi; \
+RUN LATEST_RELEASE=$(curl -L -s -H 'Accept: application/json' https://github.com/ccache/ccache/releases/latest); \
+    LATEST_VERSION=$(echo $LATEST_RELEASE | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/'); \
+    wget -O ccache.tar.gz https://github.com/ccache/ccache/archive/refs/tags/$LATEST_VERSION.tar.gz; \
     tar xvzf ccache.tar.gz && \
     cd ccache-* && \
     cmake -DZSTD_FROM_INTERNET=ON -DREDIS_STORAGE_BACKEND=OFF . && \
@@ -119,9 +88,7 @@ RUN . vdev/bin/activate \
 
 # Install my dotfiles
 RUN . vdev/bin/activate \
-    && yadm clone https://github.com/richiware/dotfiles.git --bootstrap \
-    && sudo apt clean \
-    && sudo rm -rf /var/lib/apt/lists/*
+    && yadm clone https://github.com/richiware/dotfiles.git --bootstrap
 
 # Install nvim plugins
 RUN nvim --headless '+echo "Installing' '+Lazy! sync' +qa
