@@ -1,6 +1,7 @@
-ARG UBUNTU_DISTRO=noble
+ARG DISTRO=ubuntu
+ARG RELEASE=noble
 
-FROM ubuntu:${UBUNTU_DISTRO}
+FROM ${DISTRO}:${RELEASE}
 LABEL org.opencontainers.image.authors="Ricardo González<correoricky@gmail.com>"
 
 ARG USER_ID=1000
@@ -14,11 +15,17 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN touch /.dockerenv
 
+RUN export DISTRO_NAME=$(lsb_release -s -i | tr '[:upper:]' '[:lower:]') && \
+    export DISTRO_RELEASE=$(lsb_release -sr | cut -d. -f1)
+
+RUN apt update
+
 # Install PPA for neovim
-RUN apt update && \
-    apt install -y software-properties-common && \
-    add-apt-repository ppa:neovim-ppa/unstable && \
-    apt update
+RUN if [ "${DISTRO_NAME}" = "debian" ]; then \
+        apt install -y software-properties-common && \
+        add-apt-repository ppa:neovim-ppa/unstable && \
+        apt update \
+    ;fi
 
 RUN apt install -y \
         #################################
@@ -57,14 +64,13 @@ ENV LANG=en_US.UTF-8
 ENV LANGUAGE=en_US:en
 ENV LC_ALL=en_US.UTF-8
 
-RUN UBUNTUVERSION=$(lsb_release -sr | cut -d. -f1); \
-    if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
-        if [ ${GROUP_ID} -eq 1000 ] && [ $UBUNTUVERSION -ge 24 ]; then \
+RUN if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
+        if [ ${GROUP_ID} -eq 1000 ] && [ "${DISTRO_NAME}" = "ubuntu" ] && [ $DISTRO_RELEASE -ge 24 ]; then \
             groupmod -n ${GROUP} ubuntu; \
         else \
             groupadd -g ${GROUP_ID} ${GROUP}; \
         fi; \
-        if [ ${USER_ID} -eq 1000 ] && [ $UBUNTUVERSION -ge 24 ]; then \
+        if [ ${USER_ID} -eq 1000 ] && [ "${DISTRO_NAME}" = "ubuntu" ] && [ $DISTRO_RELEASE -ge 24 ]; then \
             usermod -l ${USERNAME} -g ${GROUP} -G sudo -d /home/${USERNAME} ubuntu; \
         else \
             useradd -l -u ${USER_ID} -g ${GROUP} -G sudo ${USERNAME}; \
@@ -77,8 +83,7 @@ RUN UBUNTUVERSION=$(lsb_release -sr | cut -d. -f1); \
     ;fi
 
 # Compile and install last CCache
-RUN UBUNTUVERSION=$(lsb_release -sr | cut -d. -f1); \
-    if [ $UBUNTUVERSION -ge 22 ]; then \
+RUN if [ "${DISTRO_NAME}" == "ubuntu" ] && [ $DISTRO_RELEASE -ge 22 ]; then \
         LATEST_RELEASE=$(curl -L -s -H 'Accept: application/json' https://github.com/ccache/ccache/releases/latest); \
         LATEST_VERSION=$(echo $LATEST_RELEASE | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/'); \
         wget -O ccache.tar.gz https://github.com/ccache/ccache/archive/refs/tags/$LATEST_VERSION.tar.gz; \
