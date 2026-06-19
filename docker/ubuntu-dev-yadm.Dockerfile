@@ -15,17 +15,12 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN touch /.dockerenv
 
-RUN export DISTRO_NAME=$(lsb_release -s -i | tr '[:upper:]' '[:lower:]') && \
-    export DISTRO_RELEASE=$(lsb_release -sr | cut -d. -f1)
-
 RUN apt update
 
 # Install PPA for neovim
-RUN if [ "${DISTRO_NAME}" = "debian" ]; then \
-        apt install -y software-properties-common && \
-        add-apt-repository ppa:neovim-ppa/unstable && \
-        apt update \
-    ;fi
+RUN apt install -y software-properties-common && \
+    add-apt-repository ppa:neovim-ppa/unstable && \
+    apt update
 
 RUN apt install -y \
         #################################
@@ -65,6 +60,8 @@ ENV LANGUAGE=en_US:en
 ENV LC_ALL=en_US.UTF-8
 
 RUN if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
+        export DISTRO_NAME=$(lsb_release -s -i | tr '[:upper:]' '[:lower:]') && \
+        export DISTRO_RELEASE=$(lsb_release -sr | cut -d. -f1) && \
         if [ ${GROUP_ID} -eq 1000 ] && [ "${DISTRO_NAME}" = "ubuntu" ] && [ $DISTRO_RELEASE -ge 24 ]; then \
             groupmod -n ${GROUP} ubuntu; \
         else \
@@ -82,8 +79,15 @@ RUN if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
         echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers \
     ;fi
 
+# Create non-existing groups
+RUN groupadd sudo || true && \
+    groupadd -g 28 render || true && \
+    groupadd -g 85 usb || true
+
 # Compile and install last CCache
-RUN if [ "${DISTRO_NAME}" == "ubuntu" ] && [ $DISTRO_RELEASE -ge 22 ]; then \
+RUN export DISTRO_NAME=$(lsb_release -s -i | tr '[:upper:]' '[:lower:]') && \
+    export DISTRO_RELEASE=$(lsb_release -sr | cut -d. -f1) && \
+    if [ "${DISTRO_NAME}" == "ubuntu" ] && [ $DISTRO_RELEASE -ge 22 ]; then \
         LATEST_RELEASE=$(curl -L -s -H 'Accept: application/json' https://github.com/ccache/ccache/releases/latest); \
         LATEST_VERSION=$(echo $LATEST_RELEASE | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/'); \
         wget -O ccache.tar.gz https://github.com/ccache/ccache/archive/refs/tags/$LATEST_VERSION.tar.gz; \
@@ -129,7 +133,7 @@ RUN . vdev/bin/activate \
     && sudo rm -rf /var/lib/apt/lists/*
 
 # Install nvim plugins
-RUN nvim --headless '+echo "Installing' '+Lazy! sync' +qa
+RUN nvim --headless '+echo "Installing"' '+Lazy! sync' +qa
 
 RUN   echo "yadm pull --recurse-submodules; colcon mixin update richiware" >> /home/${USERNAME}/.zlogin
 
