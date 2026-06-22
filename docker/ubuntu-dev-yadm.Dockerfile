@@ -81,8 +81,6 @@ RUN if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
 
 # Create non-existing groups
 RUN groupadd sudo || true && \
-    groupadd -g 27 video || true && \
-    groupadd -g 28 render || true && \
     groupadd -g 85 usb || true
 
 # Compile and install last CCache
